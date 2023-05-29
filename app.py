@@ -1,16 +1,32 @@
-from DiscordBot import DiscordBot
 from decouple import config
+from Mudae import Mudae
+import time
 
-TOKEN = config('ENV')
-CHANNEL_ID = config('channel_id')
+TOKEN = config('TOKEN')
+CHANNEL_ID_PRIVATE = config('CHANNEL_ID_PRIVATE')
+CHANNEL_ID = config('CHANNEL_ID')
 
-private_bot = DiscordBot(token=TOKEN, channel_id=CHANNEL_ID)
-private_bot.send_message('$w')
-message = private_bot.get_messages()
-character_name = message[0].get('embeds')[0].get('author').get('name')
-private_bot.send_message(f'$im {character_name}')
-message = private_bot.get_messages()
-message_id = message[0].get('id')
-author_id = message[0].get('author').get('id')
-components = message[0].get('components')[0].get('components')[0]
-interact = private_bot.interactions(message_id, author_id, components)
+private_bot = Mudae(token=TOKEN, channel_id=CHANNEL_ID_PRIVATE)
+bot = Mudae(token=TOKEN, channel_id=CHANNEL_ID)
+
+while True:
+    message = bot.discord.get_messages()
+    bot.set_message(message)
+    
+    message_private = private_bot.discord.get_messages()
+    private_bot.set_message(message_private)
+
+    if bot.is_mudae_message():
+        if bot.message_type() == 'gacha' and bot.get_character_name() != private_bot.get_character_name():
+            private_bot.set_message(message)
+            private_bot.next_event('gacha')
+        
+        if private_bot.message_type() == 'detail':
+            bot.set_message(message_private)
+            bot.next_event('detail')
+        
+        private_bot.set_message(message_private)
+    else:
+        print("Not")
+
+    time.sleep(0.3)

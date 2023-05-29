@@ -12,15 +12,15 @@ class DiscordBot:
     def send_message(self, message):
         payload = {"content": message}
         r = requests.post(self.url, data=payload, headers=self.headers)
-        time.sleep(1)
+        # time.sleep(0.3)
 
         return r.status_code
     
-    def get_messages(self):
+    def get_messages(self, last='True'):
         r = requests.get(self.url, headers=self.headers)
         messages_json = json.loads(r.text)
 
-        return messages_json
+        return messages_json[0] if last.lower() == 'true' else messages_json
     
     def interactions(self, message_id, author_id, components):
         url = 'https://discord.com/api/v9/interactions'
